@@ -1,5 +1,8 @@
 #include <FastLED.h>
 
+const CRGB themeDefault(int);
+const CRGB themeChristmas(int);
+
 const int ECHO_PIN = 26;
 const int TRIG_PIN = 27;
 const int BUF_LEN = 5;
@@ -7,8 +10,10 @@ const int BUF_LEN = 5;
 const int LED_PIN = 33;
 const int NUM_LEDS = 228;
 const float LED_DIST = 1.66; // cm
-const int brightness = 128; // 1-255 only
-const CRGB colour = CRGB::White;
+const int BRIGHTNESS = 128; // 1-255 only
+const int NUM_SURROUND = 3;
+
+const CRGB (*getCol)(int) = themeChristmas;
 
 float buf[BUF_LEN];
 CRGB leds[NUM_LEDS];
@@ -21,7 +26,7 @@ void setup()
   pinMode(ECHO_PIN, INPUT);
 
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void loop()
@@ -39,9 +44,29 @@ void loop()
   FastLED.clear();
 
   int led = round(distCm / LED_DIST);
-  
-  leds[led - 1] = colour;
-  leds[led] = colour;
-  leds[led + 1] = colour;
+
+  for (int i = 0; i < NUM_SURROUND; i++)
+  {
+    leds[led - i] = getCol(led - i);
+    leds[led + i] = getCol(led + i);
+  }
+  leds[led] = getCol(led);
   FastLED.show();
+}
+
+const CRGB themeDefault(int led)
+{
+  return CRGB::White;
+}
+
+const CRGB themeChristmas(int led)
+{
+  if (led % 2 == 0)
+  {
+    return CRGB::Red;
+  }
+  else
+  {
+    return CRGB::Green;
+  }
 }
