@@ -1,12 +1,12 @@
 #include <FastLED.h>
 
-const int ECHO_PIN = 4;
-const int TRIG_PIN = 5;
-const int BUF_LEN = 5;
+const int ECHO_PIN = 26;
+const int TRIG_PIN = 27;
+const int BUF_LEN = 33;
 
 const int LED_PIN = 14;
-const int NUM_LEDS = 100;
-const float LED_DIST = 1; // cm
+const int NUM_LEDS = 228;
+const float LED_DIST = 1.5; // cm
 const int brightness = 128; // 1-255 only
 const CRGB colour = CRGB::White;
 
