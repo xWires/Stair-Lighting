@@ -36,9 +36,6 @@ void loop()
 
   float distCm = duration * 0.034 / 2;
 
-  Serial.print("Distance (cm): ");
-  Serial.println(distCm);
-
   FastLED.clear();
 
   int led = round(distCm * LED_DIST);
