@@ -11,9 +11,9 @@ const int LED_PIN = 33;
 const int NUM_LEDS = 228;
 const float LED_DIST = 1.66; // cm
 const int BRIGHTNESS = 128; // 1-255 only
-const int NUM_SURROUND = 3;
+const int NUM_SURROUND = 5;
 
-const CRGB (*getCol)(int) = themeChristmas;
+const CRGB (*getCol)(int) = themeChristmas; // Use this to choose a theme
 
 float buf[BUF_LEN];
 CRGB leds[NUM_LEDS];
@@ -45,7 +45,7 @@ void loop()
 
   int led = round(distCm / LED_DIST);
 
-  for (int i = 0; i < NUM_SURROUND; i++)
+  for (int i = 0; i <= NUM_SURROUND; i++)
   {
     leds[led - i] = getCol(led - i);
     leds[led + i] = getCol(led + i);
