@@ -1,4 +1,7 @@
 #include <FastLED.h>
+#include <AsyncTCP.h>
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
 
 #include "Secrets.h"
 
@@ -18,6 +21,7 @@ const int NUM_SURROUND = 5;
 const CRGB (*getCol)(int) = themeChristmas; // Use this to choose a theme
 
 CRGB leds[NUM_LEDS];
+AsyncWebServer server(80);
 
 void setup()
 {
@@ -26,10 +30,28 @@ void setup()
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
-  
-
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
+
+  fill_solid(leds, NUM_LEDS, CRGB::Yellow);
+  FastLED.show();
+
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
+  }
+
+  Serial.print("Connected, IP: ");
+  Serial.println(WiFi.localIP());
+
+  fill_solid(leds, NUM_LEDS, CRGB::Green);
+  FastLED.show();
+
+  delay(1000);
+
+  FastLED.clear();
+  FastLED.show();
 }
 
 void loop()
