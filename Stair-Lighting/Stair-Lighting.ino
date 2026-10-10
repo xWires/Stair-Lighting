@@ -6,7 +6,7 @@ const int BUF_LEN = 5;
 
 const int LED_PIN = 33;
 const int NUM_LEDS = 228;
-const float LED_DIST = 1.5; // cm
+const float LED_DIST = 1.66; // cm
 const int brightness = 128; // 1-255 only
 const CRGB colour = CRGB::White;
 
@@ -38,7 +38,7 @@ void loop()
 
   FastLED.clear();
 
-  int led = round(distCm * LED_DIST);
+  int led = round(distCm / LED_DIST);
   
   leds[led - 1] = colour;
   leds[led] = colour;
