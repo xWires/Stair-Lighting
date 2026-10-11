@@ -15,13 +15,13 @@ const int TRIG_PIN = 27;
 const int LED_PIN = 33;
 const int NUM_LEDS = 228;
 const float LED_DIST = 1.66; // cm
-const int BRIGHTNESS = 128; // 1-255 only
 const int NUM_SURROUND = 5;
 
 CRGB leds[NUM_LEDS];
 AsyncWebServer server(80);
 String currentTheme = "default";
 String currentMode = "follow";
+int currentBrightness = 128; // 1-255 only
 
 void setup()
 {
@@ -31,7 +31,7 @@ void setup()
   pinMode(ECHO_PIN, INPUT);
 
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(currentBrightness);
 
   fill_solid(leds, NUM_LEDS, CRGB::Yellow);
   FastLED.show();
@@ -51,6 +51,7 @@ void setup()
   server.on("/", HTTP_GET, handleIndex);
   server.on("/updateTheme", HTTP_POST, handleUpdateTheme);
   server.on("/updateMode", HTTP_POST, handleUpdateMode);
+  server.on("/updateBrightness", HTTP_POST, handleUpdateBrightness);
   server.begin();
 
   delay(1000);
@@ -81,6 +82,7 @@ void handleIndex(AsyncWebServerRequest *req)
           window.onload = function() {
             document.getElementById("mode").value = "%CURRENT_MODE%";
             document.getElementById("theme").value = "%CURRENT_THEME%";
+            document.getElementById("brightness").value = "%CURRENT_BRIGHTNESS%";
           }
 
           function updateTheme() {
@@ -89,9 +91,6 @@ void handleIndex(AsyncWebServerRequest *req)
 
             const req = new XMLHttpRequest();
             req.open("POST", `/updateTheme?theme=${theme}`);
-            req.onload = function() {
-              window.location.reload();
-            };
             req.send();
           }
 
@@ -101,9 +100,14 @@ void handleIndex(AsyncWebServerRequest *req)
 
             const req = new XMLHttpRequest();
             req.open("POST", `/updateMode?mode=${mode}`);
-            req.onload = function() {
-              window.location.reload();
-            };
+            req.send();
+          }
+
+          function updateBrightness() {
+            const brightness = document.getElementById("brightness").value;
+
+            const req = new XMLHttpRequest();
+            req.open("POST", `/updateBrightness?brightness=${brightness}`);
             req.send();
           }
         </script>
@@ -122,6 +126,9 @@ void handleIndex(AsyncWebServerRequest *req)
           <option value="christmas">Christmas</option>
           <option value="halloween">Halloween</option>
         </select>
+
+        <label for="brightness">Brightness</label>
+        <input type="range" id="brightness" min="1" max="255" onchange="updateBrightness()" />
       </body>
     </html>
   )EOF", htmlProcessor);
@@ -145,10 +152,34 @@ void handleUpdateMode(AsyncWebServerRequest *req)
   req->send(200, "text/plain", "Mode updated to " + currentMode);
 }
 
+void handleUpdateBrightness(AsyncWebServerRequest *req)
+{
+  if (!req->hasParam("brightness")) return;
+
+  int brightness = req->getParam("brightness")->value().toInt();
+  if (brightness > 255)
+  {
+    req->send(400, "text/plain", "Brightness cannot be more than 255");
+    return;
+  }
+  else if (brightness < 1)
+  {
+    req->send(400, "text/plain", "Brightness cannot be less than 1");
+    return;
+  }
+
+  currentBrightness = brightness;
+  FastLED.setBrightness(currentBrightness);
+  FastLED.show();
+
+  req->send(200, "text/plain", "Brightness updated to " + currentBrightness);
+}
+
 String htmlProcessor(const String& placeholder)
 {
   if (placeholder == "CURRENT_THEME") return currentTheme;
   else if (placeholder == "CURRENT_MODE") return currentMode;
+  else if (placeholder == "CURRENT_BRIGHTNESS") return String(currentBrightness);
 }
 
 CRGB getCol(int led)
