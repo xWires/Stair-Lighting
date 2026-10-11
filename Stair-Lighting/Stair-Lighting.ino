@@ -73,6 +73,7 @@ void handleIndex(AsyncWebServerRequest *req)
     <!DOCTYPE html>
     <html>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
           * { font-family: Arial; }
         </style>
@@ -119,14 +120,16 @@ void handleIndex(AsyncWebServerRequest *req)
           <option value="static">Static</option>
           <option value="off">Off</option>
         </select>
-
+        <br />
+        <br />
         <label for="theme">Theme</label>
         <select id="theme" onchange="updateTheme()">
           <option value="default">Default</option>
           <option value="christmas">Christmas</option>
           <option value="halloween">Halloween</option>
         </select>
-
+        <br />
+        <br />
         <label for="brightness">Brightness</label>
         <input type="range" id="brightness" min="1" max="255" onchange="updateBrightness()" />
       </body>
