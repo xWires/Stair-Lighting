@@ -50,6 +50,7 @@ void setup()
 
   server.on("/", HTTP_GET, handleIndex);
   server.on("/updateTheme", HTTP_POST, handleUpdateTheme);
+  server.on("/updateMode", HTTP_POST, handleUpdateMode);
   server.begin();
 
   delay(1000);
@@ -62,6 +63,7 @@ void loop()
 {
   if (currentMode == "follow") modeFollow();
   else if (currentMode == "static") modeStatic();
+  else if (currentMode == "off") modeOff();
 }
 
 void handleIndex(AsyncWebServerRequest *req)
@@ -77,9 +79,8 @@ void handleIndex(AsyncWebServerRequest *req)
       <body>
         <script>
           window.onload = function() {
-            const themeDropdown = document.getElementById("theme");
-
-            themeDropdown.value = "%CURRENT_THEME%";
+            document.getElementById("mode").value = "%CURRENT_MODE%";
+            document.getElementById("theme").value = "%CURRENT_THEME%";
           }
 
           function updateTheme() {
@@ -135,9 +136,19 @@ void handleUpdateTheme(AsyncWebServerRequest *req)
   req->send(200, "text/plain", "Theme updated to " + currentTheme);
 }
 
+void handleUpdateMode(AsyncWebServerRequest *req)
+{
+  if (!req->hasParam("mode")) return;
+
+  currentMode = req->getParam("mode")->value();
+
+  req->send(200, "text/plain", "Mode updated to " + currentMode);
+}
+
 String htmlProcessor(const String& placeholder)
 {
   if (placeholder == "CURRENT_THEME") return currentTheme;
+  else if (placeholder == "CURRENT_MODE") return currentMode;
 }
 
 CRGB getCol(int led)
@@ -198,6 +209,15 @@ void modeStatic()
   {
     leds[i] = getCol(i);
   }
+  FastLED.show();
+  delay(1000);
+}
+
+void modeOff()
+{
+  FastLED.clear();
+  FastLED.show();
+  delay(1000);
 }
 
 CRGB themeDefault(int led)
