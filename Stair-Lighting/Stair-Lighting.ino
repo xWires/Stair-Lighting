@@ -127,6 +127,8 @@ void handleIndex(AsyncWebServerRequest *req)
           <option value="default">Default</option>
           <option value="christmas">Christmas</option>
           <option value="halloween">Halloween</option>
+          <option value="colorUnique">ColorUnique</option>
+          <option value="rainbow">Rainbow</option>
         </select>
         <br />
         <br />
@@ -190,6 +192,8 @@ CRGB getCol(int led)
   if (currentTheme == "default") return themeDefault(led);
   else if (currentTheme == "christmas") return themeChristmas(led);
   else if (currentTheme == "halloween") return themeHalloween(led);
+  else if (currentTheme == "colorUnique") return themeColorUnique(led);
+  else if (currentTheme == "rainbow") return themeRainbow(led);
 }
 
 void modeFollow()
@@ -281,4 +285,20 @@ CRGB themeHalloween(int led)
   {
     return CRGB::Purple;
   }
+}
+
+CRGB themeColorUnique(int led)
+{
+  int i = (5 - (led >> 6)) * 17;
+  led   = 62 - led;
+  int g = i * ((led & 1) << 1 | (led &  8) >> 3);
+  int r = i * ((led & 2)      | (led & 16) >> 4);
+  int b = i * ((led & 4) >> 1 | (led & 32) >> 5);
+
+  return CRGB(r, g, b);
+}
+
+CRGB themeRainbow(int led)
+{
+  return CHSV(led, 255, 255);
 }
