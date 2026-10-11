@@ -21,6 +21,7 @@ const int NUM_SURROUND = 5;
 CRGB leds[NUM_LEDS];
 AsyncWebServer server(80);
 String currentTheme = "default";
+String currentMode = "follow";
 
 void setup()
 {
@@ -59,47 +60,8 @@ void setup()
 
 void loop()
 {
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  long duration = pulseIn(ECHO_PIN, HIGH, 30000);
-  float distCm = duration * 0.034 / 2;
-  Serial.print("duration: ");
-  Serial.println(duration);
-  Serial.print("distCm: ");
-  Serial.println(distCm);
-
-  FastLED.clear();
-
-  int led = round(distCm / LED_DIST);
-  if (led < 0 || led >= NUM_LEDS)
-  {
-    Serial.println("led OOB");
-    FastLED.clear();
-    FastLED.show();
-    return;
-  }
-
-  for (int i = 0; i <= NUM_SURROUND; i++)
-  {
-    int before = led - i;
-    if (before > 0 && before < NUM_LEDS)
-    {
-      leds[before] = getCol(before);
-    }
-    
-    int after = led + i;
-    if (after > 0 && after < NUM_LEDS)
-    {
-      leds[after] = getCol(after);
-    }
-  }
-  leds[led] = getCol(led);
-  FastLED.show();
-  delay(60);
+  if (currentMode == "follow") modeFollow();
+  else if (currentMode == "static") modeStatic();
 }
 
 void handleIndex(AsyncWebServerRequest *req)
@@ -131,8 +93,27 @@ void handleIndex(AsyncWebServerRequest *req)
             };
             req.send();
           }
+
+          function updateMode() {
+            const modeDropdown = document.getElementById("mode");
+            const mode = modeDropdown.options[modeDropdown.selectedIndex].value;
+
+            const req = new XMLHttpRequest();
+            req.open("POST", `/updateMode?mode=${mode}`);
+            req.onload = function() {
+              window.location.reload();
+            };
+            req.send();
+          }
         </script>
         <h1>Stair Lighting Control</h1>
+
+        <label for="mode">Mode</label>
+        <select id="mode" onchange="updateMode()">
+          <option value="follow">Follow</option>
+          <option value="static">Static</option>
+          <option value="off">Off</option>
+        </select>
 
         <label for="theme">Theme</label>
         <select id="theme" onchange="updateTheme()">
@@ -164,6 +145,59 @@ CRGB getCol(int led)
   if (currentTheme == "default") return themeDefault(led);
   else if (currentTheme == "christmas") return themeChristmas(led);
   else if (currentTheme == "halloween") return themeHalloween(led);
+}
+
+void modeFollow()
+{
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  long duration = pulseIn(ECHO_PIN, HIGH, 30000);
+  float distCm = duration * 0.034 / 2;
+  Serial.print("duration: ");
+  Serial.println(duration);
+  Serial.print("distCm: ");
+  Serial.println(distCm);
+
+  FastLED.clear();
+
+  int led = round(distCm / LED_DIST);
+  if (led < 0 || led >= NUM_LEDS)
+  {
+    Serial.println("led OOB");
+    FastLED.clear();
+    FastLED.show();
+    return;
+  }
+
+  for (int i = 0; i <= NUM_SURROUND; i++)
+  {
+    int before = led - i;
+    if (before > 0 && before < NUM_LEDS)
+    {
+      leds[before] = getCol(before);
+    }
+
+    int after = led + i;
+    if (after > 0 && after < NUM_LEDS)
+    {
+      leds[after] = getCol(after);
+    }
+  }
+  leds[led] = getCol(led);
+  FastLED.show();
+  delay(60);
+}
+
+void modeStatic()
+{
+  for (int i = 0; i < NUM_LEDS; i++)
+  {
+    leds[i] = getCol(i);
+  }
 }
 
 CRGB themeDefault(int led)
