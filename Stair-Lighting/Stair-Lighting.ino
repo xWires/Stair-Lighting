@@ -113,32 +113,36 @@ void handleIndex(AsyncWebServerRequest *req)
         </style>
       </head>
       <body>
-        <h1>Stair Lighting Control</h1>
-
-        <label for="theme">Theme</label>
-        <select id="theme" onchange="updateTheme">
-          <option value="default">Default</option>
-          <option value="christmas">Christmas</option>
-          <option value="halloween">Halloween</option>
-        </select>
         <script>
-          const themeDropdown = document.getElementById("theme");
+          window.onload = function() {
+            const themeDropdown = document.getElementById("theme");
 
-          themeDropdown.value = %CURRENT_THEME%;
+            themeDropdown.value = "%CURRENT_THEME%";
+          }
 
           function updateTheme() {
+            const themeDropdown = document.getElementById("theme");
             const theme = themeDropdown.options[themeDropdown.selectedIndex].value;
 
             const req = new XMLHttpRequest();
             req.open("POST", `/updateTheme?theme=${theme}`);
+            req.onload = function() {
+              window.location.reload();
+            };
             req.send();
-
-            window.location.reload();
           }
         </script>
+        <h1>Stair Lighting Control</h1>
+
+        <label for="theme">Theme</label>
+        <select id="theme" onchange="updateTheme()">
+          <option value="default">Default</option>
+          <option value="christmas">Christmas</option>
+          <option value="halloween">Halloween</option>
+        </select>
       </body>
     </html>
-  )EOF");
+  )EOF", htmlProcessor);
 }
 
 void handleUpdateTheme(AsyncWebServerRequest *req)
@@ -147,7 +151,7 @@ void handleUpdateTheme(AsyncWebServerRequest *req)
 
   currentTheme = req->getParam("theme")->value();
 
-  req->send(200);
+  req->send(200, "text/plain", "Theme updated to " + currentTheme);
 }
 
 String htmlProcessor(const String& placeholder)
